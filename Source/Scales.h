@@ -21,11 +21,11 @@ using namespace std;
 class Scale {
     public:
         string RootString;
-        Note RootEnum;
-        array<map<string, Note>, 7> ScaleNotes;
+        NoteEnum RootEnum;
+        array<map<string, NoteEnum>, 7> ScaleNotes;
         Scale* EnharmonicWith; // This will etiher be 'n' for next scale, 'p' for previous or 'x' for none
 
-        Scale(string rootString, Note rootEnum, array<map<string, Note>, 7> scaleNotes, Scale* enharmonicWith)
+        Scale(string rootString, NoteEnum rootEnum, array<map<string, NoteEnum>, 7> scaleNotes, Scale* enharmonicWith)
         {
             RootString = rootString;
             RootEnum = rootEnum;

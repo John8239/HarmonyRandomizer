@@ -21,6 +21,12 @@
 class MainComponent  : public juce::AudioAppComponent
 {
 public:
+    struct NoteStruct
+    {
+        std::string noteString;
+        NoteEnum noteEnum;
+    };
+
     //==============================================================================
     MainComponent();
     ~MainComponent() override;
@@ -31,9 +37,9 @@ public:
     void releaseResources() override;
 
     // Custom functions
-    std::string deterimineNextRootNote(Step step = Step::NoSteps);
-    std::array<std::string, 7> MainComponent::determineChord(Chord chord = Chord::NoChord);
-    std::string isCorrectNote(Interval interval);
+    std::string deterimineNextRootNote(StepEnum step = StepEnum::NoSteps);
+    std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord = ChordEnum::NoChord);
+    NoteStruct determineNoteByInterval(IntervalEnum interval, NoteEnum note, std::string noteString);
 
     //==============================================================================
     void paint (juce::Graphics& g) override;
@@ -47,190 +53,193 @@ private:
     const static short NumOfEnharmNoteNames = 2;
     const static short NumForChordsArray = 5;
 
-    Note CurrentNote = Note::C;
+    NoteEnum CurrentNote = NoteEnum::C;
 
     // This can't be an array of chars because of the b's and #'s
-    std::map<Note, std::array<std::string, NumOfEnharmNoteNames>> MusicalAlphabet = {
-        {Note::A, {"A"}},
-        {Note::Bb, {"Bb", "A#"}},
-        {Note::B, {"B"}},
-        {Note::C, {"C"}},
-        {Note::Db, {"Db", "C#"}},
-        {Note::D, {"D"}},
-        {Note::Eb, {"Eb", "D#"}},
-        {Note::E, {"E"}},
-        {Note::F, {"F"}},
-        {Note::Gb, {"Gb", "F#"}},
-        {Note::G, {"G"}},
-        {Note::Ab, {"Ab", "G#"}}
+    std::map<NoteEnum, std::array<std::string, NumOfEnharmNoteNames>> MusicalAlphabet = {
+        {NoteEnum::A, {"A"}},
+        {NoteEnum::Bb, {"Bb", "A#"}},
+        {NoteEnum::B, {"B"}},
+        {NoteEnum::C, {"C"}},
+        {NoteEnum::Db, {"Db", "C#"}},
+        {NoteEnum::D, {"D"}},
+        {NoteEnum::Eb, {"Eb", "D#"}},
+        {NoteEnum::E, {"E"}},
+        {NoteEnum::F, {"F"}},
+        {NoteEnum::Gb, {"Gb", "F#"}},
+        {NoteEnum::G, {"G"}},
+        {NoteEnum::Ab, {"Ab", "G#"}}
     };
 
-    std::array<Chord, NumForChordsArray> ChordOptions = {
-        {Chord::Triad,
-        Chord::Seventh,
-        Chord::Ninth,
-        Chord::Eleventh,
-        Chord::Thirteenth}
+    std::array<ChordEnum, NumForChordsArray> ChordOptions = {
+        {ChordEnum::Triad,
+        ChordEnum::Seventh,
+        ChordEnum::Ninth,
+        ChordEnum::Eleventh,
+        ChordEnum::Thirteenth}
     };
     
     // This is confusing but I wanted to have a list of all the enharmonic spellings of a note
     // while also having one definitive enum for each pitch, ergo the weird matchings.
-    std::map<std::string, Note> adoubleflat = { {"Abb", Note::G } };
-    std::map<std::string, Note> aflat = { {"Ab", Note::Ab } };
-    std::map<std::string, Note> a = { {"A", Note::A } };
-    std::map<std::string, Note> asharp = { {"A#", Note::Bb } };
-    std::map<std::string, Note> adoublesharp = { {"Ax", Note::B } };
-    std::map<std::string, Note> bdoubleflat = { {"Bbb", Note::A } };
-    std::map<std::string, Note> bflat = { {"Bb", Note::Bb } };
-    std::map<std::string, Note> b = { {"B", Note::B } };
-    std::map<std::string, Note> bsharp = { {"B#", Note::Ab } };
-    std::map<std::string, Note> bdoublesharp = { {"Bx", Note::C } };
-    std::map<std::string, Note> cdoubleflat = { {"Cbb", Note::Bb } };
-    std::map<std::string, Note> cflat = { {"Cb", Note::B } };
-    std::map<std::string, Note> c = { {"C", Note::C } };
-    std::map<std::string, Note> csharp = { {"C#", Note::Db } };
-    std::map<std::string, Note> cdoublesharp = { {"Cx", Note::D } };
-    std::map<std::string, Note> ddoubleflat = { {"Dbb", Note::C } };
-    std::map<std::string, Note> dflat = { {"Db", Note::Db } };
-    std::map<std::string, Note> d = { {"D", Note::D } };
-    std::map<std::string, Note> dsharp = { {"D#", Note::Eb } };
-    std::map<std::string, Note> ddoublesharp = { {"Dx", Note::E } };
-    std::map<std::string, Note> edoubleflat = { {"Ebb", Note::D } };
-    std::map<std::string, Note> eflat = { {"Eb", Note::Eb } };
-    std::map<std::string, Note> e = { {"E", Note::E } };
-    std::map<std::string, Note> esharp = { {"E#", Note::F } };
-    std::map<std::string, Note> edoublesharp = { {"Ex", Note::Gb } };
-    std::map<std::string, Note> fdoubleflat = { {"Fbb", Note::Eb } };
-    std::map<std::string, Note> fflat = { {"Fb", Note::E } };
-    std::map<std::string, Note> f = { {"F", Note::F } };
-    std::map<std::string, Note> fsharp = { {"F#", Note::Gb } };
-    std::map<std::string, Note> fdoublesharp = { {"Fx", Note::G } };
-    std::map<std::string, Note> gflat = { {"Gb", Note::Gb } };
-    std::map<std::string, Note> gdoubleflat = { {"Gbb", Note::F } };
-    std::map<std::string, Note> g = { {"G", Note::G } };
-    std::map<std::string, Note> gsharp = { {"G#", Note::Ab } };
-    std::map<std::string, Note> gdoublesharp = { {"Gx", Note::A } };
+    struct NoteStruct adoubleflat { "Abb", NoteEnum::G };
+    struct NoteStruct aflat { "Ab", NoteEnum::Ab };
+    struct NoteStruct a { "A", NoteEnum::A };
+    struct NoteStruct asharp { "A#", NoteEnum::Bb };
+    struct NoteStruct adoublesharp { "Ax", NoteEnum::B };
+    struct NoteStruct bdoubleflat { "Bbb", NoteEnum::A };
+    struct NoteStruct bflat { "Bb", NoteEnum::Bb };
+    struct NoteStruct b { "B", NoteEnum::B };
+    struct NoteStruct bsharp { "B#", NoteEnum::C };
+    struct NoteStruct bdoublesharp { "Bx", NoteEnum::Db };
+    struct NoteStruct cdoubleflat { "Cbb", NoteEnum::Bb };
+    struct NoteStruct cflat { "Cb", NoteEnum::B };
+    struct NoteStruct c { "C", NoteEnum::C };
+    struct NoteStruct csharp { "C#", NoteEnum::Db };
+    struct NoteStruct cdoublesharp { "Cx", NoteEnum::D };
+    struct NoteStruct ddoubleflat { "Dbb", NoteEnum::C };
+    struct NoteStruct dflat { "Db", NoteEnum::Db };
+    struct NoteStruct d { "D", NoteEnum::D };
+    struct NoteStruct dsharp { "D#", NoteEnum::Eb };
+    struct NoteStruct ddoublesharp { "Dx", NoteEnum::E };
+    struct NoteStruct edoubleflat { "Ebb", NoteEnum::D };
+    struct NoteStruct eflat { "Eb", NoteEnum::Eb };
+    struct NoteStruct e { "E", NoteEnum::E };
+    struct NoteStruct esharp { "E#", NoteEnum::F };
+    struct NoteStruct edoublesharp { "Ex", NoteEnum::Gb };
+    struct NoteStruct fdoubleflat { "Fbb", NoteEnum::Eb };
+    struct NoteStruct fflat { "Fb", NoteEnum::E };
+    struct NoteStruct f { "F", NoteEnum::F };
+    struct NoteStruct fsharp { "F#", NoteEnum::Gb };
+    struct NoteStruct fdoublesharp { "Fx", NoteEnum::G };
+    struct NoteStruct gdoubleflat { "Gb", NoteEnum::Gb };
+    struct NoteStruct gflat { "Gbb", NoteEnum::F };
+    struct NoteStruct g { "G", NoteEnum::G };
+    struct NoteStruct gsharp { "G#", NoteEnum::Ab };
+    struct NoteStruct gdoublesharp { "Gx", NoteEnum::A };
 
     // TODO: Update the comment below
     // These can be thought of as absolute note groupings, as in, they are all of a specific Note enum. They are ordered from most commonly 
-    // seen to least commonly seen and that will be used in determining the level of randomness. This could also be thought of as which #/b 
-    // comes first in the order of #s/bs. For example, Bb is the 1st b which I would put before A# which is the 5th #. Some of these groupings
-    // In the scenario where there are 2 notes of similar enough commonality (like noteGroup4) I just alternate them.
-    std::array<std::map<std::string, Note>, 5> noteGroup0 = { a, a, a, bdoubleflat, gdoublesharp };
-    std::array<std::map<std::string, Note>, 5> noteGroup1 = { bflat, asharp, bflat, asharp, cdoubleflat };
-    std::array<std::map<std::string, Note>, 5> noteGroup2 = { b, b, b, cflat, adoublesharp };
-    std::array<std::map<std::string, Note>, 5> noteGroup3 = { c, c, c, bsharp, ddoubleflat };
-    std::array<std::map<std::string, Note>, 5> noteGroup4 = { csharp, dflat, csharp, dflat, csharp };
-    std::array<std::map<std::string, Note>, 5> noteGroup5 = { d, d, d, d, edoubleflat };
-    std::array<std::map<std::string, Note>, 5> noteGroup6 = { eflat, dsharp, eflat, dsharp, fdoubleflat };
-    std::array<std::map<std::string, Note>, 5> noteGroup7 = { e, e, e, fflat, ddoublesharp };
-    std::array<std::map<std::string, Note>, 5> noteGroup8 = { f, f, f, esharp, gdoubleflat };
-    std::array<std::map<std::string, Note>, 5> noteGroup9 = { fsharp, gflat, fsharp, gflat, edoublesharp };
-    std::array<std::map<std::string, Note>, 5> noteGroup10 = { g, g, g, fdoublesharp, adoubleflat };
-    std::array<std::map<std::string, Note>, 5> noteGroup11 = { aflat, gsharp, aflat, gsharp, aflat };
+    // seen to least commonly seen and that may be able to be used in determining the level of randomness... this remains to be seen
+    std::array<NoteStruct, 3> noteGroup0 = { a, bdoubleflat, gdoublesharp };
+    std::array<NoteStruct, 3> noteGroup1 = { bflat, asharp, cdoubleflat };
+    std::array<NoteStruct, 3> noteGroup2 = { b, cflat, adoublesharp };
+    std::array<NoteStruct, 3> noteGroup3 = { c, bsharp, ddoubleflat };
+    std::array<NoteStruct, 3> noteGroup4 = { csharp, dflat, csharp };
+    std::array<NoteStruct, 3> noteGroup5 = { d, edoubleflat };
+    std::array<NoteStruct, 3> noteGroup6 = { eflat, dsharp, fdoubleflat };
+    std::array<NoteStruct, 3> noteGroup7 = { e, fflat, ddoublesharp };
+    std::array<NoteStruct, 3> noteGroup8 = { f, esharp, gdoubleflat };
+    std::array<NoteStruct, 3> noteGroup9 = { fsharp, gflat, edoublesharp };
+    std::array<NoteStruct, 3> noteGroup10 = { g, fdoublesharp, adoubleflat };
+    std::array<NoteStruct, 3> noteGroup11 = { gsharp, aflat };
 
-    // TODO: Might want to consider reworking some of the above, I only gave the array room enough for 3 since that was the max amount of
-    // versions the Note enum was used in. However, if I'm going to use the 3 spaces as a way to control the level of randomness (i.e. light
-    // randomness = only using notes in noteGroup[0], light-medium randomnes = using modulo to sometimes only use noteGroup[0] and other times
-    // use from noteGroup[1], medium randomness = using notes up to noteGroup[1], and so on) then the arrangement of say, noteGroup0, doesn't
-    // make much sense. Even with light-medium randomness there is no reason to have an Bbb there. What I'm thinking is perhaps to increase the
-    // space for the array to hold like 5 or 6 spaces and just repeat the more common ones towards the beginning.
-
-    std::map<short, std::array<std::map<std::string, Note>, 5>> noteGroupings = {
+    const std::map<short, std::array<NoteStruct, 3>> noteGroupings = {
         {0, noteGroup0}, {1, noteGroup1}, {2, noteGroup2}, {3, noteGroup3}, {4, noteGroup4}, {5, noteGroup5}, {6, noteGroup6}, 
         {7, noteGroup7}, {8, noteGroup8}, {9, noteGroup9}, {10, noteGroup10}, {11, noteGroup11}
     };
 
-    std::array<std::map<std::string, Note>, 7> AflatScale = { 
-        aflat, bflat, c, dflat, eflat, f, g
-    };
-    std::array<std::map<std::string, Note>, 7> AScale = {
-        a, b, csharp, d, e, fsharp, gsharp
-    };
-    std::array<std::map<std::string, Note>, 7> AsharpScale = {
-        asharp, bsharp, cdoublesharp, dsharp, esharp, fdoublesharp, gdoublesharp
-    };
-    std::array<std::map<std::string, Note>, 7> BflatScale = {
-        bflat, c, d, eflat, f, g, a
-    };
-    std::array<std::map<std::string, Note>, 7> BScale = {
-        b, csharp, dsharp, e, fsharp, gsharp, asharp
-    };
-    std::array<std::map<std::string, Note>, 7> BsharpScale = {
-        bsharp, cdoublesharp, ddoublesharp, esharp, fdoublesharp, gdoublesharp, adoublesharp
-    };
-    std::array<std::map<std::string, Note>, 7> CflatScale = {
-        cflat, dflat, eflat, fflat, gflat, aflat, bflat
-    };
-    std::array<std::map<std::string, Note>, 7> CScale = {
-        c, d, e, f, g, a, b
-    };
-    std::array<std::map<std::string, Note>, 7> CsharpScale = {
-        csharp, dsharp, esharp, fsharp, gsharp, asharp, bsharp
-    };
-    std::array<std::map<std::string, Note>, 7> DflatScale = {
-        dflat, eflat, f, gflat, aflat, bflat, c
-    };
-    std::array<std::map<std::string, Note>, 7> DScale = {
-        d, e, fsharp, g, a, b, csharp
-    };
-    std::array<std::map<std::string, Note>, 7> DsharpScale = {
-        dsharp, esharp, fdoublesharp, gsharp, asharp, bsharp, cdoublesharp
-    };
-    std::array<std::map<std::string, Note>, 7> EflatScale = {
-        eflat, f, g, aflat, bflat, c, d
-    };
-    std::array<std::map<std::string, Note>, 7> EScale = {
-        e, fsharp, gsharp, a, b, csharp, dsharp
-    };
-    std::array<std::map<std::string, Note>, 7> EsharpScale = {
-        esharp, fdoublesharp, gdoublesharp, asharp, bsharp, cdoublesharp, ddoublesharp
-    };
-    std::array<std::map<std::string, Note>, 7> FflatScale = {
-        fflat, gflat, aflat, bdoubleflat, cflat, dflat, eflat
-    };
-    std::array<std::map<std::string, Note>, 7> FScale = {
-        f, g, a, bflat, c, d, e
-    };
-    std::array<std::map<std::string, Note>, 7> FsharpScale = {
-        fsharp, gsharp, asharp, b, csharp, dsharp, esharp
-    }; 
-    std::array<std::map<std::string, Note>, 7> GflatScale = {
-        gflat, aflat, bflat, cflat, dflat, eflat, f
-    };
-    std::array<std::map<std::string, Note>, 7> GScale = {
-        g, a, b, c, d, e, fsharp
-    };
-    std::array<std::map<std::string, Note>, 7> GsharpScale = {
-        gsharp, asharp, bsharp, csharp, dsharp, esharp, fdoublesharp
-    };
+    std::array<char, 7> MusicalLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G'};
 
-    Scale Ab = Scale("Ab", Note::Ab, AflatScale, &GSharp);
-    Scale A = Scale("A", Note::A, AScale, nullptr);
-    Scale ASharp = Scale("A#", Note::Bb, AsharpScale, &Bb);
-    Scale Bb = Scale("Bb", Note::Bb, BflatScale, &ASharp);
-    Scale B = Scale("B", Note::B, BScale, &Cb);
-    Scale BSharp = Scale("B#", Note::C, BsharpScale, &C);
-    Scale Cb = Scale("Cb", Note::B, CflatScale, &B);
-    Scale C = Scale("C", Note::C, CScale, &BSharp);
-    Scale CSharp = Scale("C#", Note::Db, CsharpScale, &Db);
-    Scale Db = Scale("Db", Note::Db, DflatScale, &CSharp);
-    Scale D = Scale("D", Note::D, DScale, nullptr);
-    Scale DSharp = Scale("D#", Note::Eb, DsharpScale, &Eb);
-    Scale Eb = Scale("Eb", Note::Eb, EflatScale, &DSharp);
-    Scale E = Scale("E", Note::E, EScale, &Fb);
-    Scale ESharp = Scale("E#", Note::F, EsharpScale, &F);
-    Scale Fb = Scale("Fb", Note::E, FflatScale, &E);
-    Scale F = Scale("F", Note::F, FScale, &ESharp);
-    Scale FSharp = Scale("F#", Note::Gb, FsharpScale, &Gb);
-    Scale Gb = Scale("Gb", Note::Gb, GflatScale, &FSharp);
-    Scale G = Scale("G", Note::G, GScale, nullptr);
-    Scale GSharp = Scale("G#", Note::Ab, GsharpScale, &Ab);
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+};
 
-    std::array<Scale, 21> Scales = {
-        Ab, A, ASharp, Bb, B, BSharp, Cb, C, CSharp, Db, D, DSharp, Eb, E, ESharp, Fb, F, FSharp, Gb, G, GSharp
-    };
 
+//std::array<std::map<std::string, Note>, 7> AflatScale = { 
+    //    aflat, bflat, c, dflat, eflat, f, g
+    //};
+    //std::array<std::map<std::string, Note>, 7> AScale = {
+    //    a, b, csharp, d, e, fsharp, gsharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> AsharpScale = {
+    //    asharp, bsharp, cdoublesharp, dsharp, esharp, fdoublesharp, gdoublesharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> BflatScale = {
+    //    bflat, c, d, eflat, f, g, a
+    //};
+    //std::array<std::map<std::string, Note>, 7> BScale = {
+    //    b, csharp, dsharp, e, fsharp, gsharp, asharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> BsharpScale = {
+    //    bsharp, cdoublesharp, ddoublesharp, esharp, fdoublesharp, gdoublesharp, adoublesharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> CflatScale = {
+    //    cflat, dflat, eflat, fflat, gflat, aflat, bflat
+    //};
+    //std::array<std::map<std::string, Note>, 7> CScale = {
+    //    c, d, e, f, g, a, b
+    //};
+    //std::array<std::map<std::string, Note>, 7> CsharpScale = {
+    //    csharp, dsharp, esharp, fsharp, gsharp, asharp, bsharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> DflatScale = {
+    //    dflat, eflat, f, gflat, aflat, bflat, c
+    //};
+    //std::array<std::map<std::string, Note>, 7> DScale = {
+    //    d, e, fsharp, g, a, b, csharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> DsharpScale = {
+    //    dsharp, esharp, fdoublesharp, gsharp, asharp, bsharp, cdoublesharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> EflatScale = {
+    //    eflat, f, g, aflat, bflat, c, d
+    //};
+    //std::array<std::map<std::string, Note>, 7> EScale = {
+    //    e, fsharp, gsharp, a, b, csharp, dsharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> EsharpScale = {
+    //    esharp, fdoublesharp, gdoublesharp, asharp, bsharp, cdoublesharp, ddoublesharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> FflatScale = {
+    //    fflat, gflat, aflat, bdoubleflat, cflat, dflat, eflat
+    //};
+    //std::array<std::map<std::string, Note>, 7> FScale = {
+    //    f, g, a, bflat, c, d, e
+    //};
+    //std::array<std::map<std::string, Note>, 7> FsharpScale = {
+    //    fsharp, gsharp, asharp, b, csharp, dsharp, esharp
+    //}; 
+    //std::array<std::map<std::string, Note>, 7> GflatScale = {
+    //    gflat, aflat, bflat, cflat, dflat, eflat, f
+    //};
+    //std::array<std::map<std::string, Note>, 7> GScale = {
+    //    g, a, b, c, d, e, fsharp
+    //};
+    //std::array<std::map<std::string, Note>, 7> GsharpScale = {
+    //    gsharp, asharp, bsharp, csharp, dsharp, esharp, fdoublesharp
+    //};
+
+    //Scale Ab = Scale("Ab", Note::Ab, AflatScale, &GSharp);
+    //Scale A = Scale("A", Note::A, AScale, nullptr);
+    //Scale ASharp = Scale("A#", Note::Bb, AsharpScale, &Bb);
+    //Scale Bb = Scale("Bb", Note::Bb, BflatScale, &ASharp);
+    //Scale B = Scale("B", Note::B, BScale, &Cb);
+    //Scale BSharp = Scale("B#", Note::C, BsharpScale, &C);
+    //Scale Cb = Scale("Cb", Note::B, CflatScale, &B);
+    //Scale C = Scale("C", Note::C, CScale, &BSharp);
+    //Scale CSharp = Scale("C#", Note::Db, CsharpScale, &Db);
+    //Scale Db = Scale("Db", Note::Db, DflatScale, &CSharp);
+    //Scale D = Scale("D", Note::D, DScale, nullptr);
+    //Scale DSharp = Scale("D#", Note::Eb, DsharpScale, &Eb);
+    //Scale Eb = Scale("Eb", Note::Eb, EflatScale, &DSharp);
+    //Scale E = Scale("E", Note::E, EScale, &Fb);
+    //Scale ESharp = Scale("E#", Note::F, EsharpScale, &F);
+    //Scale Fb = Scale("Fb", Note::E, FflatScale, &E);
+    //Scale F = Scale("F", Note::F, FScale, &ESharp);
+    //Scale FSharp = Scale("F#", Note::Gb, FsharpScale, &Gb);
+    //Scale Gb = Scale("Gb", Note::Gb, GflatScale, &FSharp);
+    //Scale G = Scale("G", Note::G, GScale, nullptr);
+    //Scale GSharp = Scale("G#", Note::Ab, GsharpScale, &Ab);
+
+    //std::array<Scale, 21> Scales = {
+    //    Ab, A, ASharp, Bb, B, BSharp, Cb, C, CSharp, Db, D, DSharp, Eb, E, ESharp, Fb, F, FSharp, Gb, G, GSharp
+    //};
+
+
+// Thoughs on the project log:
+    // 
+    // *I keep finding myself not wanting to delete these notes in case I want to come back to them and experiment so I'll just keep them,
+    // with a new paragraph reperesenting the next time I worked on this and the most recent paragraph being at the bottom.*
+    // 
     // LAST LEFT OFF: Another way I can conceive of this (for determining correct chord tones) is by having two lists, one of just the
     // musical letters and another of all 12 tones. If we want to go up 4 half-steps from C we get E which will be fine, but if we go up
     // 4 half-steps from C# and get F, we can compare that note to the musical alphabet, see if the note is not exactly a (generic) 3rd
@@ -241,6 +250,16 @@ private:
     // 1 (meaning it's plain A, B, C, etc. not C#, Ab, and so on) and if that's the case we can assume it needs to be a double accidental. 
     // But I would need to do a lot of testing on that to make sure that works. Also on top of that, I can see this going awry pretty quickly
     // if this isn't implemented carefully and then we end up in a place where we're getting quadruple #'s or now everything becomes a bb or x.
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
-};
+    // 
+    // UPDATE TO ABOVE: I actually think that maybe using a combined approach of the above and the noteGroups would be best. Meaning, the 
+    // 2nd 12-tone list should just be the noteGroupings. In whatever function is created to determine the enharmonic spellings, take the logic
+    // above, but then determine the correct string spelling of the note (meaning which letter and accidentals) and then determine the absolute
+    // note number (0 = A, Bbb, Gx / 1 = A#, Bb, Cbb / etc.) and then use the string value we just determined as the key to find the correct
+    // Note enum and pitch.
+    //
+    // I did a lot of clean up and finally got a function to determine the correct note spelling using the approach above though slightly modified.
+    // Basically, since no letter would ever appear twice in a grouping, I just checked the first letter of the NoteString. However, one major-ish
+    // thing I changed was that I made a struct of note enum and note string and replaced the mess of maps and arrays I was using previously for
+    // the noteGroupings. This seems to be the way to go overall, but if that is the case then I'll need to reconfigure how I'm using the global
+    // CurrentNote because that should probably be one of those structs from the get go. It'll keep everything easier to keep track of since the
+    // CurrentNote only keeps track of the absolute pitch, the string name can vary widely and I'm relying on the CurrentNote to determine the next.

@@ -89,7 +89,7 @@ void MainComponent::resized()
 }
 
 // This sets CurrentNote (declared in MainComponent.h) and returns the string version of the new note determined
-std::string MainComponent::deterimineNextRootNote(Step step)
+std::string MainComponent::deterimineNextRootNote(StepEnum step)
 {
     std::string returnNote;
 
@@ -100,15 +100,9 @@ std::string MainComponent::deterimineNextRootNote(Step step)
     int randomNum = rand();
 
     newNoteNumericVal = noteNumericVal += randomNum;
-
-    // TODO: Check if this if check is actually necessary or if we can just do the modulo regardless,
-    // If we can get rid of the if check then also remove it below in the else block of this function and the 
-    // determinChord function.
-    if (newNoteNumericVal >= 12)
-    {
-        newNoteNumericVal = newNoteNumericVal % 12;
-    }
-    CurrentNote = (Note)newNoteNumericVal;
+    newNoteNumericVal = newNoteNumericVal % 12;
+    
+    CurrentNote = (NoteEnum)newNoteNumericVal;
 
     // Since not all Notes in MusicalAlphabet have multiple names, check to make sure the index 
     // grabbed is not empty. If it is, just use [0] because that will always be populated
@@ -118,11 +112,11 @@ std::string MainComponent::deterimineNextRootNote(Step step)
     return returnNote;
 }
 
-std::array<std::string, 7> MainComponent::determineChord(Chord chord)
+std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
 {
-    Chord newChord;
+    ChordEnum newChord;
     std::array<std::string, 7> returnChord;
-    if (chord == Chord::NoChord)
+    if (chord == ChordEnum::NoChord)
     {
         srand(time(0));
         int randomNum = rand() % 5;
@@ -135,91 +129,92 @@ std::array<std::string, 7> MainComponent::determineChord(Chord chord)
     }
 
     int numOfThirds = (int)newChord;
-    Note currentNote = CurrentNote;
-    std::array<Interval, 2> thirds = { Interval::min3, Interval::Maj3 };
+    NoteEnum currentNote = CurrentNote;
+    std::array<IntervalEnum, 2> thirds = { IntervalEnum::min3, IntervalEnum::Maj3 };
 
-    returnChord[0] = MusicalAlphabet[currentNote][0];
+    std::string currentNoteString = MusicalAlphabet[currentNote][0];
+    returnChord[0] = currentNoteString; // TODO: Will have to update this to work with determineNoteByInterval()
     for (int i = 1; i < numOfThirds; i++)
     {
         srand(time(0));
 
-        int whichThird = (int)thirds[rand() % 2];
-        currentNote = Note((int)currentNote + whichThird);
+        IntervalEnum whichThird = thirds[rand() % 2];
+        struct NoteStruct nextNote = determineNoteByInterval(whichThird, currentNote, currentNoteString);
 
-        if ((int)currentNote >= 12)
-        {
-            currentNote = Note((int)currentNote % 12);
-        }
-
-        // TODO: Call isCorrectNote here
-        returnChord[i] = MusicalAlphabet[currentNote][0];
+        returnChord[i] = nextNote.noteString;
+        currentNote = nextNote.noteEnum;
     }
 
     return returnChord;
 }
 
-// LAST LEFT OFF: I'm trying to implement a function that will determine the correct enharmonic
-// spelling of the note needed. -> UPDATE: See other Last Left Off in MainComponent.H
-std::string MainComponent::isCorrectNote(Interval interval)
+// This takes in an Interval and a Note and determines what the next note is with the correct spelling
+MainComponent::NoteStruct MainComponent::determineNoteByInterval(IntervalEnum interval, NoteEnum note, std::string noteString)
 {
+    GenericIntervalEnum genericInterval;
+
+    // Take index 0 of the note string to get the letter value only
+    char currentLetter = noteString[0];
+
+    // Get the integer values of the note and interval
     int numOfHalfSteps = (int)interval;
-    /*if (numOfHalfSteps)*/
-    return "";
+    int numOfNote = (int)note;
+
+    // Get index of the current letter in the MusicalLetters array
+    int currentLetterIndex = 0;
+    for (currentLetterIndex; currentLetterIndex < 7; currentLetterIndex++)
+    {
+        if (MusicalLetters[currentLetterIndex] == currentLetter)
+        {
+            break;
+        }
+    }
+
+    // Determine the generic interval
+    switch (interval)
+    {
+        case IntervalEnum::Unison:
+            genericInterval = GenericIntervalEnum::Unison;
+            break;
+        case IntervalEnum::min2:
+        case IntervalEnum::Maj2:
+            genericInterval = GenericIntervalEnum::Second;
+            break;
+        case IntervalEnum::min3:
+        case IntervalEnum::Maj3:
+            genericInterval = GenericIntervalEnum::Third;
+            break;
+        case IntervalEnum::P4:
+        case IntervalEnum::Tritone: //I'm just arbitrarily lumping the Tritone in with the 4th, could have been 5th but who cares
+            genericInterval = GenericIntervalEnum::Fourth;
+            break;
+        case IntervalEnum::P5:
+            genericInterval = GenericIntervalEnum::Fifth;
+            break;
+        case IntervalEnum::min6:
+        case IntervalEnum::Maj6:
+            genericInterval = GenericIntervalEnum::Sixth;
+            break;
+        case IntervalEnum::min7:
+        case IntervalEnum::Maj7:
+            genericInterval = GenericIntervalEnum::Seventh;
+            break;
+    }
+    int nextLetterIndex = (currentLetterIndex += (int)genericInterval) % 7;
+    char nextLetter = MusicalLetters[nextLetterIndex];
+
+    // Now that we have the next letter, determine the absolute pitch
+    short nextNoteNum = ((short)note + (short)interval) % 12;
+
+    std::array<NoteStruct, 3> noteGroup = noteGroupings.at(nextNoteNum);
+    struct NoteStruct newNote;
+    for (int i = 0; i < 3; i++)
+    {
+        if (noteGroup[i].noteString[0] == nextLetter)
+        {
+            newNote = noteGroup[i];
+            break;
+        }
+    }
+    return newNote;
 }
-
-
-
-/*// This sets CurrentNote (declared in MainComponent.h) and returns the string version of the new note determined
-std::string MainComponent::deterimineNextRootNote(Step step)
-{
-    std::string returnNote;
-
-    int noteNumericVal = (int)CurrentNote;
-    int newNoteNumericVal;
-
-    // If NoSteps, we will return a completely random note
-    if (step == Step::NoSteps)
-    {
-        srand(time(0));
-        int randomNum = rand();
-
-        newNoteNumericVal = noteNumericVal += randomNum;
-
-        // TODO: Check if this if check is actually necessary or if we can just do the modulo regardless,
-        // If we can get rid of the if check then also remove it below in the else block of this function and the 
-        // determinChord function.
-        if (newNoteNumericVal >= 12)
-        {
-            newNoteNumericVal = newNoteNumericVal % 12;
-        }
-        CurrentNote = (Note)newNoteNumericVal;
-
-        // Since not all Notes in MusicalAlphabet have multiple names, check to make sure the index 
-        // grabbed is not empty. If it is, just use [0] because that will always be populated
-        returnNote = !MusicalAlphabet[CurrentNote][randomNum % NumOfEnharmNoteNames].empty()
-            ? MusicalAlphabet[CurrentNote][randomNum % NumOfEnharmNoteNames] : MusicalAlphabet[CurrentNote][0];
-
-        return returnNote;
-    }
-    // Else, add the step to the note... 
-    // TOOD: Not entirely sure how necessary this will be but thinking ahead for
-    // how we'll want specificity in our randomness, it might be good to have.
-    else
-    {
-        // Add the numeric value of the Step to the Note
-        newNoteNumericVal = noteNumericVal += (int)step;
-
-        // TODO: This only adds intervals right now, we should also consider subtracting intervals as well
-        // Make sure the new note value isn't >= 12, if it is use modulo to get the accurate value
-        if (newNoteNumericVal >= 12)
-        {
-            newNoteNumericVal = newNoteNumericVal % 12;
-        }
-        CurrentNote = (Note)newNoteNumericVal;
-
-        // TODO: We have the array of enharmonic names for a reason so we'll have to
-        // figure out how to properly determine which note name we should return later.
-        returnNote = MusicalAlphabet[CurrentNote][0];
-        return returnNote;
-    }
-}*/

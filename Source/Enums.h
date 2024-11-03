@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-enum class Note {
+enum class NoteEnum {
 	A = 0,
 	Bb = 1,
 	B = 2,
@@ -27,14 +27,14 @@ enum class Note {
 	Ab = 11
 };
 
-enum class Step {
+enum class StepEnum {
 	// Instead of using an optional parameter I figure it may be more versatile to just have a no step option
 	NoSteps = 0, 
 	HalfStep = 1,
 	WholeStep = 2
 };
 
-enum class Interval {
+enum class IntervalEnum {
 	Unison = 0,
 	min2 = 1,
 	Maj2 = 2,
@@ -50,7 +50,19 @@ enum class Interval {
 	Octave = 12
 };
 
-enum class Chord {
+// These will be used to add to the non-accidental letter 
+// (I.e. D (MusicalLetters[3]) + a Third (2) = F (MusicalLetters[5])
+enum class GenericIntervalEnum {
+	Unison = 0,
+	Second = 1,
+	Third = 2,
+	Fourth = 3,
+	Fifth = 4,
+	Sixth = 5,
+	Seventh = 6
+};
+
+enum class ChordEnum {
 	// The numeric values represent the number of thirds needed to complete the chord
 	// i.e. a Triad = m3 & M3 == 2 thirds, a Seventh = m3, M3 & m3 == 3 thirds, etc.
 
