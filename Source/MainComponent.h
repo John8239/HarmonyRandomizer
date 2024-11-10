@@ -37,7 +37,7 @@ public:
     void releaseResources() override;
 
     // Custom functions
-    std::string deterimineNextRootNote(StepEnum step = StepEnum::NoSteps);
+    void deterimineNextRootNote(StepEnum step = StepEnum::NoSteps);
     std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord = ChordEnum::NoChord);
     NoteStruct determineNoteByInterval(IntervalEnum interval, NoteEnum note, std::string noteString);
 
@@ -53,7 +53,7 @@ private:
     const static short NumOfEnharmNoteNames = 2;
     const static short NumForChordsArray = 5;
 
-    NoteEnum CurrentNote = NoteEnum::C;
+    struct NoteStruct CurrentNote = { "C", NoteEnum::C};
 
     // This can't be an array of chars because of the b's and #'s
     std::map<NoteEnum, std::array<std::string, NumOfEnharmNoteNames>> MusicalAlphabet = {
@@ -117,7 +117,6 @@ private:
     struct NoteStruct gsharp { "G#", NoteEnum::Ab };
     struct NoteStruct gdoublesharp { "Gx", NoteEnum::A };
 
-    // TODO: Update the comment below
     // These can be thought of as absolute note groupings, as in, they are all of a specific Note enum. They are ordered from most commonly 
     // seen to least commonly seen and that may be able to be used in determining the level of randomness... this remains to be seen
     std::array<NoteStruct, 3> noteGroup0 = { a, bdoubleflat, gdoublesharp };

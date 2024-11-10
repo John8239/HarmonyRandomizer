@@ -41,8 +41,8 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    std::string newNote = deterimineNextRootNote(/*Step::WholeStep*/);
-    std::array<std::string, 7> newChord = determineChord();
+    deterimineNextRootNote(/*Step::WholeStep*/);
+    std::array<std::string, 7> newChord = determineChord(ChordEnum::Seventh);
 
     for (int i = 0; i < NumForChordsArray; i++)
     {
@@ -89,11 +89,9 @@ void MainComponent::resized()
 }
 
 // This sets CurrentNote (declared in MainComponent.h) and returns the string version of the new note determined
-std::string MainComponent::deterimineNextRootNote(StepEnum step)
+void MainComponent::deterimineNextRootNote(StepEnum step)
 {
-    std::string returnNote;
-
-    int noteNumericVal = (int)CurrentNote;
+    int noteNumericVal = (int)CurrentNote.noteEnum;
     int newNoteNumericVal;
 
     srand(time(0));
@@ -102,14 +100,12 @@ std::string MainComponent::deterimineNextRootNote(StepEnum step)
     newNoteNumericVal = noteNumericVal += randomNum;
     newNoteNumericVal = newNoteNumericVal % 12;
     
-    CurrentNote = (NoteEnum)newNoteNumericVal;
+    CurrentNote.noteEnum = (NoteEnum)newNoteNumericVal;
 
     // Since not all Notes in MusicalAlphabet have multiple names, check to make sure the index 
     // grabbed is not empty. If it is, just use [0] because that will always be populated
-    returnNote = !MusicalAlphabet[CurrentNote][randomNum % NumOfEnharmNoteNames].empty() 
-        ? MusicalAlphabet[CurrentNote][randomNum % NumOfEnharmNoteNames] : MusicalAlphabet[CurrentNote][0];
-
-    return returnNote;
+    CurrentNote.noteString = !MusicalAlphabet[CurrentNote.noteEnum][randomNum % NumOfEnharmNoteNames].empty() 
+        ? MusicalAlphabet[CurrentNote.noteEnum][randomNum % NumOfEnharmNoteNames] : MusicalAlphabet[CurrentNote.noteEnum][0];
 }
 
 std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
@@ -129,11 +125,12 @@ std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
     }
 
     int numOfThirds = (int)newChord;
-    NoteEnum currentNote = CurrentNote;
+    NoteEnum currentNote = CurrentNote.noteEnum;
     std::array<IntervalEnum, 2> thirds = { IntervalEnum::min3, IntervalEnum::Maj3 };
 
     std::string currentNoteString = MusicalAlphabet[currentNote][0];
-    returnChord[0] = currentNoteString; // TODO: Will have to update this to work with determineNoteByInterval()
+    returnChord[0] = currentNoteString;
+
     for (int i = 1; i < numOfThirds; i++)
     {
         srand(time(0));
@@ -141,8 +138,9 @@ std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
         IntervalEnum whichThird = thirds[rand() % 2];
         struct NoteStruct nextNote = determineNoteByInterval(whichThird, currentNote, currentNoteString);
 
-        returnChord[i] = nextNote.noteString;
         currentNote = nextNote.noteEnum;
+        currentNoteString = nextNote.noteString;
+        returnChord[i] = currentNoteString;
     }
 
     return returnChord;
