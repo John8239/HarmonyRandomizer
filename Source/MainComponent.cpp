@@ -30,13 +30,16 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    // This function will be called when the audio device is started, or when
-    // its settings (i.e. sample rate, block size, etc) are changed.
+    frequency = 400;
+    phase = 0;
+    increment = frequency * waveTableSize / sampleRate;
 
-    // You can use this function to initialise any resources you might need,
-    // but be careful - it will be called on the audio thread, not the GUI thread.
-
-    // For more details, see the help for AudioProcessor::prepareToPlay()
+    // One cycle of a sine wave
+    for (int i = 0; i < waveTable; i++)
+    {
+        waveTable.insert(i, sin(2.0 * juce::double_Pi * i / waveTableSize))
+    }
+    // LAST LEFT OFF: I'm following The Audio Programmer's Juce Tutorial 11 and left off around timestamp 16:00
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -50,6 +53,15 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     }
 
     DBG("\n\n");
+
+    // Ripping this straight from The Audio Programmer's "Juce Tutorial 11 - Basic Wavetable Synthesis in Juce"
+    float* const leftSpeaker = bufferToFill.buffer->getWritePointer(0, bufferToFill.startSample);
+    float* const rightSpeaker = bufferToFill.buffer->getWritePointer(1, bufferToFill.startSample);
+
+    for (int sample; sample < bufferToFill.numSamples; ++sample)
+    {
+
+    }
 
     // Your audio-processing code goes here!
 

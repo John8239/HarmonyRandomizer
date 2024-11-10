@@ -49,6 +49,12 @@ private:
     //==============================================================================
     // Your private member variables go here...
 
+    juce::Array<float> waveTable;
+    double waveTableSize;
+    double frequency;
+    double phase;
+    double increment;
+
     // TODO: This ultimately should not be initialized here but for now it's fine
     const static short NumOfEnharmNoteNames = 2;
     const static short NumForChordsArray = 5;
@@ -234,7 +240,7 @@ private:
     //};
 
 
-// Thoughs on the project log:
+// Thoughts on the project log:
     // 
     // *I keep finding myself not wanting to delete these notes in case I want to come back to them and experiment so I'll just keep them,
     // with a new paragraph reperesenting the next time I worked on this and the most recent paragraph being at the bottom.*
@@ -262,3 +268,10 @@ private:
     // the noteGroupings. This seems to be the way to go overall, but if that is the case then I'll need to reconfigure how I'm using the global
     // CurrentNote because that should probably be one of those structs from the get go. It'll keep everything easier to keep track of since the
     // CurrentNote only keeps track of the absolute pitch, the string name can vary widely and I'm relying on the CurrentNote to determine the next.
+    //
+    // OK so I reconfigured the CurrentNote and also made some smaller clean ups but overall, everything is working as expected. Now I need to make 
+    // this create sounds that correspond to the notes that are determined. I started the process of actually creating sound and I'm following The
+    // Audio Programmer's Juce Tutorial 11. Ctrl+F "LAST LEFT OFF" and you'll see where I'm at in the tutorial. Aside from that, thinking ahead on
+    // how to move forward after creating sound: The chords are wayyyy too random. I'm getting Augmenteds and Diminisheds 50% of the time (which is
+    // expected with total randomness). While I will want to make a "Total Randomness" mode, I will also want to start figuring out how to create 
+    // modes for this randomizer. That way it can be random within the paradigm of tonality, like random within a scale per se.
