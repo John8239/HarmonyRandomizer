@@ -42,7 +42,7 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
     deterimineNextRootNote(/*Step::WholeStep*/);
-    std::array<std::string, 7> newChord = determineChord(ChordEnum::Seventh);
+    std::array<std::string, 7> newChord = determineChord(ChordEnum::Seventh); // Just using 7th chords for the sake of testing
 
     for (int i = 0; i < NumForChordsArray; i++)
     {
@@ -114,6 +114,8 @@ std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
     std::array<std::string, 7> returnChord;
     if (chord == ChordEnum::NoChord)
     {
+        // TODO: We'll eventually want to elaborate on this function so that it's not always complete randomness.
+        // We'll want some sort of determinative logic behind it so we don't giet diminished and augmented chords 50% of the time.
         srand(time(0));
         int randomNum = rand() % 5;
 
@@ -131,7 +133,7 @@ std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
     std::string currentNoteString = MusicalAlphabet[currentNote][0];
     returnChord[0] = currentNoteString;
 
-    for (int i = 1; i < numOfThirds; i++)
+    for (int i = 1; i < numOfThirds + 1; i++)
     {
         srand(time(0));
 
