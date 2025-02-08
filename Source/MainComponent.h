@@ -40,6 +40,7 @@ public:
     void deterimineNextRootNote(StepEnum step = StepEnum::NoSteps);
     std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord = ChordEnum::NoChord);
     NoteStruct determineNoteByInterval(IntervalEnum interval, NoteEnum note, std::string noteString);
+    void updateFrequency();
 
     //==============================================================================
     void paint (juce::Graphics& g) override;
@@ -49,11 +50,13 @@ private:
     //==============================================================================
     // Your private member variables go here...
 
-    juce::Array<float> waveTable;
-    double waveTableSize;
-    double frequency;
-    double phase;
-    double increment;
+    juce::Array<float> _waveTable;
+    double _waveTableSize;
+    double _frequency;
+    double _phase;
+    double _increment;
+    double _amplitude;
+    double _currentSampleRate;
 
     // TODO: This ultimately should not be initialized here but for now it's fine
     const static short NumOfEnharmNoteNames = 2;
@@ -239,7 +242,25 @@ private:
     //    Ab, A, ASharp, Bb, B, BSharp, Cb, C, CSharp, Db, D, DSharp, Eb, E, ESharp, Fb, F, FSharp, Gb, G, GSharp
     //};
 
+/***********************************************************************************************************************************************
+// Overall Workflow:
+    //
+    // MainComponent() -> prepareToPlay() -> getNextAudioBlock()   ------->
+    //                                                |            ^      |
+    //                                                V            |      V
+    //                                   determineNextRootNote() ---      determineChord()... *continued below*
+    //
+    // ----------------------------------------------------------------------------------------------------------------------------------------
+    // 
+    //                                       ^------> getNextAudioBlock() --------> Repeat.
+    //                                       |
+    // ...determineChord()           -------->
+    //           |                   ^       
+    //           V                   |
+    //   determineNoteByInterval() ---      
+***********************************************************************************************************************************************/
 
+/***************************************************************************************************************************************************
 // Thoughts on the project log:
     // 
     // *I keep finding myself not wanting to delete these notes in case I want to come back to them and experiment so I'll just keep them,
@@ -275,3 +296,13 @@ private:
     // how to move forward after creating sound: The chords are wayyyy too random. I'm getting Augmenteds and Diminisheds 50% of the time (which is
     // expected with total randomness). While I will want to make a "Total Randomness" mode, I will also want to start figuring out how to create 
     // modes for this randomizer. That way it can be random within the paradigm of tonality, like random within a scale per se.
+    //
+    // ********************************************************************************************************************************************* 
+    //
+    // Ok so I just came back to this after a few months and it took a minute to refamiliarize myself and get caught up to speed. I'm going to 
+    // put the over all workflow above this Thoughts on the Project Log section so that I can look back at it. All that aside though, I was able
+    // to get a sine wave to play though it is not dynamic and I will have to figure out how to properly update the frequency (via the updateFrequency()
+    // function I just made) with the returnedChord without it changing every split second. First and foremost though, I'll need to create some 
+    // sortof list of enums or something that allows me to correlate the pitches to a frequency. I can just choose one pitch and then double or halve
+    // it as needed to get the right octave.
+***************************************************************************************************************************************************/

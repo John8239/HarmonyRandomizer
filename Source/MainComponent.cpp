@@ -30,23 +30,24 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    frequency = 400;
-    phase = 0;
-    increment = frequency * waveTableSize / sampleRate;
+    _frequency = 440;
+    _phase = 0;
+    _waveTableSize = 1024;
+    _amplitude = 0.25;
+    _currentSampleRate = sampleRate;
 
     // One cycle of a sine wave
-    for (int i = 0; i < waveTable; i++)
+    for (int i = 0; i < _waveTableSize; i++)
     {
-        waveTable.insert(i, sin(2.0 * juce::double_Pi * i / waveTableSize))
+        _waveTable.insert(i, sin(2.0 * juce::double_Pi * i / _waveTableSize));
     }
-    // LAST LEFT OFF: I'm following The Audio Programmer's Juce Tutorial 11 and left off around timestamp 16:00
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
     deterimineNextRootNote(/*Step::WholeStep*/);
     std::array<std::string, 7> newChord = determineChord(ChordEnum::Seventh); // Just using 7th chords for the sake of testing
-
+    
     for (int i = 0; i < NumForChordsArray; i++)
     {
         DBG(newChord[i] + "\n");
@@ -60,44 +61,21 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     for (int sample; sample < bufferToFill.numSamples; ++sample)
     {
+        leftSpeaker[sample] = _waveTable[(int)_phase] * _amplitude;
+        rightSpeaker[sample] = _waveTable[(int)_phase] * _amplitude;
+        updateFrequency();
 
+        // LAST LEFT OFF: Ok so now I have a simple sine wave but I need to have the _frequency update according to the 
+        // determined chords. First I'll have to send the returnedChord to the updateFrequency() function above. But then
+        // we'll need to find a way to have the same frequency value set for more than a split second before updating to
+        // the next value without interrupting the flow of processing the audio block, so no sleep() function. First and 
+        // foremost though, I'll need to create some sortof list of enums or something that allows me to correlate the 
+        // pitches to a frequency. I can just choose one pitch and then double or halve it as needed to get the right octave.
     }
-
-    // Your audio-processing code goes here!
-
-    // For more details, see the help for AudioProcessor::getNextAudioBlock()
 
     // Right now we are not producing any data, in which case we need to clear the buffer
     // (to prevent the output of random noise)
-    bufferToFill.clearActiveBufferRegion();
-}
-
-void MainComponent::releaseResources()
-{
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
-
-    // For more details, see the help for AudioProcessor::releaseResources()
-}
-
-//==============================================================================
-void MainComponent::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-    g.setFont(14.0);
-    g.setColour(juce::Colours::white);
-    g.drawText("Test Label", getLocalBounds(), juce::Justification::centred, true);
-
-    // You can add your drawing code here!
-}
-
-void MainComponent::resized()
-{
-    // This is called when the MainContentComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
+    //bufferToFill.clearActiveBufferRegion();
 }
 
 // This sets CurrentNote (declared in MainComponent.h) and returns the string version of the new note determined
@@ -111,12 +89,12 @@ void MainComponent::deterimineNextRootNote(StepEnum step)
 
     newNoteNumericVal = noteNumericVal += randomNum;
     newNoteNumericVal = newNoteNumericVal % 12;
-    
+
     CurrentNote.noteEnum = (NoteEnum)newNoteNumericVal;
 
     // Since not all Notes in MusicalAlphabet have multiple names, check to make sure the index 
     // grabbed is not empty. If it is, just use [0] because that will always be populated
-    CurrentNote.noteString = !MusicalAlphabet[CurrentNote.noteEnum][randomNum % NumOfEnharmNoteNames].empty() 
+    CurrentNote.noteString = !MusicalAlphabet[CurrentNote.noteEnum][randomNum % NumOfEnharmNoteNames].empty()
         ? MusicalAlphabet[CurrentNote.noteEnum][randomNum % NumOfEnharmNoteNames] : MusicalAlphabet[CurrentNote.noteEnum][0];
 }
 
@@ -142,7 +120,7 @@ std::array<std::string, 7> MainComponent::determineChord(ChordEnum chord)
     NoteEnum currentNote = CurrentNote.noteEnum;
     std::array<IntervalEnum, 2> thirds = { IntervalEnum::min3, IntervalEnum::Maj3 };
 
-    std::string currentNoteString = MusicalAlphabet[currentNote][0];
+    std::string currentNoteString = CurrentNote.noteString;
     returnChord[0] = currentNoteString;
 
     for (int i = 1; i < numOfThirds + 1; i++)
@@ -185,32 +163,32 @@ MainComponent::NoteStruct MainComponent::determineNoteByInterval(IntervalEnum in
     // Determine the generic interval
     switch (interval)
     {
-        case IntervalEnum::Unison:
-            genericInterval = GenericIntervalEnum::Unison;
-            break;
-        case IntervalEnum::min2:
-        case IntervalEnum::Maj2:
-            genericInterval = GenericIntervalEnum::Second;
-            break;
-        case IntervalEnum::min3:
-        case IntervalEnum::Maj3:
-            genericInterval = GenericIntervalEnum::Third;
-            break;
-        case IntervalEnum::P4:
-        case IntervalEnum::Tritone: //I'm just arbitrarily lumping the Tritone in with the 4th, could have been 5th but who cares
-            genericInterval = GenericIntervalEnum::Fourth;
-            break;
-        case IntervalEnum::P5:
-            genericInterval = GenericIntervalEnum::Fifth;
-            break;
-        case IntervalEnum::min6:
-        case IntervalEnum::Maj6:
-            genericInterval = GenericIntervalEnum::Sixth;
-            break;
-        case IntervalEnum::min7:
-        case IntervalEnum::Maj7:
-            genericInterval = GenericIntervalEnum::Seventh;
-            break;
+    case IntervalEnum::Unison:
+        genericInterval = GenericIntervalEnum::Unison;
+        break;
+    case IntervalEnum::min2:
+    case IntervalEnum::Maj2:
+        genericInterval = GenericIntervalEnum::Second;
+        break;
+    case IntervalEnum::min3:
+    case IntervalEnum::Maj3:
+        genericInterval = GenericIntervalEnum::Third;
+        break;
+    case IntervalEnum::P4:
+    case IntervalEnum::Tritone: //I'm just arbitrarily lumping the Tritone in with the 4th, could have been 5th but who cares
+        genericInterval = GenericIntervalEnum::Fourth;
+        break;
+    case IntervalEnum::P5:
+        genericInterval = GenericIntervalEnum::Fifth;
+        break;
+    case IntervalEnum::min6:
+    case IntervalEnum::Maj6:
+        genericInterval = GenericIntervalEnum::Sixth;
+        break;
+    case IntervalEnum::min7:
+    case IntervalEnum::Maj7:
+        genericInterval = GenericIntervalEnum::Seventh;
+        break;
     }
     int nextLetterIndex = (currentLetterIndex += (int)genericInterval) % 7;
     char nextLetter = MusicalLetters[nextLetterIndex];
@@ -229,4 +207,38 @@ MainComponent::NoteStruct MainComponent::determineNoteByInterval(IntervalEnum in
         }
     }
     return newNote;
+}
+
+void MainComponent::updateFrequency()
+{
+    _increment = _frequency * _waveTableSize / _currentSampleRate;
+    _phase = fmod((_phase + _increment), _waveTableSize);
+}
+
+void MainComponent::releaseResources()
+{
+    // This will be called when the audio device stops, or when it is being
+    // restarted due to a setting change.
+
+    // For more details, see the help for AudioProcessor::releaseResources()
+}
+
+//==============================================================================
+void MainComponent::paint (juce::Graphics& g)
+{
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+
+    g.setFont(14.0);
+    g.setColour(juce::Colours::white);
+    g.drawText("Test Label", getLocalBounds(), juce::Justification::centred, true);
+
+    // You can add your drawing code here!
+}
+
+void MainComponent::resized()
+{
+    // This is called when the MainContentComponent is resized.
+    // If you add any child components, this is where you should
+    // update their positions.
 }
