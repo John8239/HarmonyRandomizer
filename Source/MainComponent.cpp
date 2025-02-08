@@ -71,6 +71,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         // the next value without interrupting the flow of processing the audio block, so no sleep() function. First and 
         // foremost though, I'll need to create some sortof list of enums or something that allows me to correlate the 
         // pitches to a frequency. I can just choose one pitch and then double or halve it as needed to get the right octave.
+        // See The Audio Programmer's Tutorial Part 12 for more.
     }
 
     // Right now we are not producing any data, in which case we need to clear the buffer
